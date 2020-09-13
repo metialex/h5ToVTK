@@ -17,9 +17,9 @@ def eulerH5toVTK(output_path, files):
                 NY = np.array(hdf.get('grid').get('NY'))[0]
                 NZ = np.array(hdf.get('grid').get('NZ'))[0]
 
-                dx = np.array(hdf.get('grid').get('xc'))
-                dy = np.array(hdf.get('grid').get('yc'))
-                dz = np.array(hdf.get('grid').get('zc'))
+                dx = np.array(hdf.get('grid').get('xu'))
+                dy = np.array(hdf.get('grid').get('yv'))
+                dz = np.array(hdf.get('grid').get('zw'))
 
                 pressure = np.array(hdf.get('p'))
                 u = np.array(hdf.get('u'))

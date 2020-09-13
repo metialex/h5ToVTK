@@ -17,9 +17,9 @@ def eulerH5toVTK(output_path, files):
                 NY = np.array(hdf.get('grid').get('NY'))[0]
                 NZ = np.array(hdf.get('grid').get('NZ'))[0]
 
-                dx = np.array(hdf.get('grid').get('xc'))
-                dy = np.array(hdf.get('grid').get('yc'))
-                dz = np.array(hdf.get('grid').get('zc'))
+                dx = np.array(hdf.get('grid').get('xu'))
+                dy = np.array(hdf.get('grid').get('yv'))
+                dz = np.array(hdf.get('grid').get('zw'))
 
                 pressure = np.array(hdf.get('p'))
                 u = np.array(hdf.get('u'))
@@ -170,7 +170,14 @@ output_path = 'vtk_out/'
 index_min = 0
 index_max = 1e+10
 
-
+with h5py.File('Data_8.h5', 'r') as hdf:
+    ls = list(hdf.items())
+    print('List of datasets: \n',ls)
+    ls = list(hdf.get('grid').items())
+    print('List of datasets: \n',ls)
+    ls = list(hdf.get('grid').get('xc'))
+    print('List of datasets: \n',ls)
+'''
 if args.eulerLagrangian:
     if args.index:
         index_min = int(args.index.split(':')[0])
@@ -233,7 +240,7 @@ else:
     except:
         print ('No Lagrangian data')
 
-'''
+
 with h5py.File('Particle_1332.h5', 'r') as hdf:
     ls = list(hdf.items())
     print('List of datasets: \n',ls)
