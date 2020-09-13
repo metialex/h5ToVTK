@@ -3,6 +3,7 @@ import h5py
 import sys
 import glob
 import os
+import argparse
 
 def eulerH5toVTK(output_path, files):
         for input_file in files:
@@ -129,7 +130,7 @@ def lagrangianVTKwrite(file,Position,Radius, Velocity, Omega):
 
     f.close()
 def findFiles(path, keyword, index_min, index_max):
-    line = path + keyword + '*' #keyword = '/Particle_*'
+    line = path + keyword + '*' #keyword = '/Particle_* or '/Data''
     files = glob.glob(line)
     res = []
     for i in files:
@@ -141,9 +142,98 @@ def findFiles(path, keyword, index_min, index_max):
     for i in range(len(files)):
         if res[i] <= index_max and res[i] >= index_min:
             files_res.append(files[i])
+    files_res.sort()
     return files_res
 
-    
+parser = argparse.ArgumentParser(description='Process some integers.')
+parser.add_argument('-i', '--index', type=str,required=False, help='index range of data to convert (e.g. -i 2:5)')
+group = parser.add_mutually_exclusive_group()
+parser.add_argument('-el', '--eulerLagrangian', action='store_true', help='Convering Eulerian and Lagrangian data')
+parser.add_argument('-e', '--euler', action='store_true', help='Convering only Eulerian data')
+parser.add_argument('-l', '--lagrangian', action='store_true', help='Convering only Lagrangian data')
+args = parser.parse_args()
+
+#Create output directory
+directory = 'vtk_out/'
+try:
+    os.stat(directory)
+except:
+    os.mkdir(directory)
+
+#initializing default variables
+euler_keyword = 'Data_'
+lagrang_keyword = 'Particle_'
+
+input_path = ''
+output_path = 'vtk_out/'
+
+index_min = 0
+index_max = 1e+10
+
+
+if args.eulerLagrangian:
+    if args.index:
+        index_min = int(args.index.split(':')[0])
+        index_max = int(args.index.split(':')[1])
+
+    try:
+        print('Eulerian data start')
+        files_e = findFiles(input_path,euler_keyword, index_min, index_max)
+        eulerH5toVTK(output_path, files_e)
+        print('Eulerian data stop')
+    except:
+        print ('No Eulerian data')
+    try:
+        print('Lagrangian data start')
+        files_l = findFiles(input_path,lagrang_keyword, index_min, index_max)
+        lagrangianH5toVTK(output_path, files_l)
+        print('Lagrangian data stop')
+    except:
+        print ('No Lagrangian data')
+elif args.euler:
+    if args.index:
+        index_min = int(args.index.split(':')[0])
+        index_max = int(args.index.split(':')[1])
+
+    try:
+        print('Eulerian data start')
+        files_e = findFiles(input_path,euler_keyword, index_min, index_max)
+        eulerH5toVTK(output_path, files_e)
+        print('Eulerian data stop')
+    except:
+        print ('No Eulerian data')
+elif args.lagrangian:
+    if args.index:
+        index_min = int(args.index.split(':')[0])
+        index_max = int(args.index.split(':')[1])
+    try:
+        print('Lagrangian data start')
+        files_l = findFiles(input_path,lagrang_keyword, index_min, index_max)
+        lagrangianH5toVTK(output_path, files_l)
+        print('Lagrangian data stop')
+    except:
+        print ('No Lagrangian data')
+else:
+    if args.index:
+        index_min = int(args.index.split(':')[0])
+        index_max = int(args.index.split(':')[1])
+
+    try:
+        print('Eulerian data start')
+        files_e = findFiles(input_path,euler_keyword, index_min, index_max)
+        eulerH5toVTK(output_path, files_e)
+        print('Eulerian data stop')
+    except:
+        print ('No Eulerian data')
+    try:
+        print('Lagrangian data start')
+        files_l = findFiles(input_path,lagrang_keyword, index_min, index_max)
+        lagrangianH5toVTK(output_path, files_l)
+        print('Lagrangian data stop')
+    except:
+        print ('No Lagrangian data')
+
+'''
 with h5py.File('Particle_1332.h5', 'r') as hdf:
     ls = list(hdf.items())
     print('List of datasets: \n',ls)
@@ -151,6 +241,7 @@ with h5py.File('Particle_1332.h5', 'r') as hdf:
     for i in ls:
         print(i)
 
+'''
 '''
 print(sys.argv)
 
