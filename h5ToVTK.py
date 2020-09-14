@@ -66,7 +66,7 @@ def eulerVTKwrite(file,NX,NY,NZ,dx,dy,dz,pressure,u,v,w):
         for j in range(NY):
             f.write('\n')
             for i in range(NX):
-                f.write(str(pressure[k][j][i]) + ' ')
+                f.write(str(pressure[k-1][j-1][i-1]) + ' ')
     #Velocity field
     f.write('\n')
     f.write('VECTORS velocity float\n')
@@ -75,9 +75,9 @@ def eulerVTKwrite(file,NX,NY,NZ,dx,dy,dz,pressure,u,v,w):
         for j in range(NY):
             f.write('\n')
             for i in range(NX):
-                f.write(str(u[k][j][i]) + ' ')
-                f.write(str(v[k][j][i]) + ' ')
-                f.write(str(w[k][j][i]) + ' ')
+                f.write(str(u[k-1][j-1][i-1]) + ' ')
+                f.write(str(v[k-1][j-1][i-1]) + ' ')
+                f.write(str(w[k-1][j-1][i-1]) + ' ')
     f.close()
 
 def lagrangianH5toVTK(output_path, files):
