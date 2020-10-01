@@ -86,13 +86,21 @@ def lagrangianH5toVTK(output_path, files):
             print('Processing - ' + tmp + ' file')
             file = output_path + '/Particle_' + tmp.split('.h5')[0] + '.vtk'
             with h5py.File(input_file, 'r') as hdf:
-                ls = list(hdf.get('mobile').items())
-                #print('List of datasets: \n',ls)
-                Position = np.array(hdf.get('mobile').get('X'))
-                Radius = np.array(hdf.get('mobile').get('R'))
+                part_word = 'undefined'
+                try:
+                    list(hdf.get('mobile').items())
+                    part_word = 'mobile'
+                except:
+                    try:
+                        list(hdf.get('fixed').items())
+                        part_word = 'fixed'
+                    except:
+                        print('Lagrangian Data is weird...')
+                Position = np.array(hdf.get(part_word).get('X'))
+                Radius = np.array(hdf.get(part_word).get('R'))
                 
-                Velocity = np.array(hdf.get('mobile').get('U'))
-                Omega = np.array(hdf.get('mobile').get('Omega'))
+                Velocity = np.array(hdf.get(part_word).get('U'))
+                Omega = np.array(hdf.get(part_word).get('Omega'))
                 #print(Velocity)
                 lagrangianVTKwrite(file,Position, Radius, Velocity, Omega)          
 def lagrangianVTKwrite(file,Position,Radius, Velocity, Omega):

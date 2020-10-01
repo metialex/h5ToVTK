@@ -170,13 +170,13 @@ output_path = 'vtk_out/'
 index_min = 0
 index_max = 1e+10
 
-with h5py.File('Data_8.h5', 'r') as hdf:
+with h5py.File('Particle_4.h5', 'r') as hdf:
     ls = list(hdf.items())
     print('List of datasets: \n',ls)
-    ls = list(hdf.get('grid').items())
+    ls = list(hdf.get('fixed').items())
     print('List of datasets: \n',ls)
-    ls = list(hdf.get('grid').get('xc'))
-    print('List of datasets: \n',ls)
+    #ls = list(hdf.get('grid').get('xc'))
+    #print('List of datasets: \n',ls)
 '''
 if args.eulerLagrangian:
     if args.index:
