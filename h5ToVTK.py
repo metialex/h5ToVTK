@@ -182,7 +182,7 @@ def lagrangian_extract_quantity(output_path, quantity_list, files):
         tmp2 = []
         with h5py.File(input_file, 'r') as hdf:
             time.append(hdf.get('time')[0])
-            print(time)
+            #print(time)
             part_word = 'undefined'
             try:
                 list(hdf.get('mobile').items())
