@@ -22,12 +22,16 @@ def eulerH5toVTK(output_path, files):
                 dz = np.array(hdf.get('grid').get('zw'))
 
                 pressure = np.array(hdf.get('p'))
+                if(hdf.get('p_avg')):
+                    pressure_av = np.array(hdf.get('p_avg'))
+                else:
+                    pressure_av = 0
                 u = np.array(hdf.get('u'))
                 v = np.array(hdf.get('v'))
                 w = np.array(hdf.get('w'))
  
-                eulerVTKwrite(file,NX,NY,NZ,dx,dy,dz,pressure,u,v,w)
-def eulerVTKwrite(file,NX,NY,NZ,dx,dy,dz,pressure,u,v,w):
+                eulerVTKwrite(file,NX,NY,NZ,dx,dy,dz,pressure,u,v,w,pressure_av)
+def eulerVTKwrite(file,NX,NY,NZ,dx,dy,dz,pressure,u,v,w,pressure_av):
     f = open(file,'w')
 
     #General information about file
@@ -59,7 +63,7 @@ def eulerVTKwrite(file,NX,NY,NZ,dx,dy,dz,pressure,u,v,w):
 
     #Pressure field
     f.write('CELL_DATA ' + str(NX*NY*NZ) + '\n')
-    f.write('SCALARS pressure float\n')
+    f.write('SCALARS p_rk float\n')
     f.write('LOOKUP_TABLE default\n')
     for k in range(NZ):
         f.write('\n')
@@ -67,6 +71,21 @@ def eulerVTKwrite(file,NX,NY,NZ,dx,dy,dz,pressure,u,v,w):
             f.write('\n')
             for i in range(NX):
                 f.write(str(pressure[k-1][j-1][i-1]) + ' ')
+    #Pressure avg field
+    try:
+        if(len(pressure_av) > 0):
+            f.write('\n')
+            #f.write('CELL_DATA ' + str(NX*NY*NZ) + '\n')
+            f.write('SCALARS p float\n')
+            f.write('LOOKUP_TABLE default\n')
+            for k in range(NZ):
+                f.write('\n')
+                for j in range(NY):
+                    f.write('\n')
+                    for i in range(NX):
+                        f.write(str(pressure_av[k-1][j-1][i-1]) + ' ')
+    except:
+        print("No av pres data")
     #Velocity field
     f.write('\n')
     f.write('VECTORS velocity float\n')
