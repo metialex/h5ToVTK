@@ -5,4 +5,4 @@ This utility is made to convert the Lagrangian and Eulerian output .h5 data file
  _step 1_  - clone repository 
  `https://github.com/metialex/h5ToVTK.git`
  
- _step 2_ - run the executable file - `./dist/h5ToVTK`
+ _step 2_ - run the executable file - `./dist/h5ToVTK` or python file `python3 h5ToVTK.py`
