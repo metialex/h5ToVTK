@@ -19,4 +19,4 @@ There are different flags which can be chosen as an input arguments: <br>
 ## Other
 Pay attention that .vtk files are saved in ASCII format.
 Right now it is impossible to specify several variables with `-d` flag, so if you want to extract several quantities from Lagrangian data files you have to run this application several times. <br>
-Eulerian files must satisfy the following name pattern _Data_%i.h5_ while Lagrangian files also have to match the simmilar pattern _Particle_%i.h5_
+Eulerian files must satisfy the following name pattern **Data_%i.h5** while Lagrangian files also have to match the simmilar pattern **Particle_%i.h5**
