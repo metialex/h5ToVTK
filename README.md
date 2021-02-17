@@ -6,3 +6,7 @@ This utility is made to convert the Lagrangian and Eulerian output .h5 data file
  `https://github.com/metialex/h5ToVTK.git`
  
  _step 2_ - run the executable file - `./dist/h5ToVTK` or python file `python3 h5ToVTK.py`
+
+## Options
+There are different flags which can be chosen as an input arguments: <br>
+`-e -l -el` corresponds to different output files. With the first flag `-e` only Eulerian data (Data_x.h5) will be processed, while `-l` corresponds to Lagrangian data (Particle_x.h5). <br>
