@@ -10,7 +10,9 @@ This utility is made to convert the Lagrangian and Eulerian output .h5 data file
 ## Options
 There are different flags which can be chosen as an input arguments: <br>
 `-e -l -el` corresponds to different output files. With the first flag `-e` only Eulerian data (Data_x.h5) will be processed, while `-l` corresponds to Lagrangian data (Particle_x.h5) and with flag `-el` both output data types will be processed <br>
+
 `-i` provides to choose the range of the anylized files, e.g. with `-e -i 2:5` files Data_2.h5, Data_3.h5, Data_4.h5, Data_5.h5 will be converted to .vtk format. <br>
+
 `-d` used to extract certain data from Lagrangian particles and save it to corresponding .dat file. For example, `-d F` will excract the force _F_ from all Particle_x.h5 files and save it to three files _F0.dat_, _F1.dat_, _F2.dat_. These files contain three vectors components for each particle over time.
 `-h` help flag shows all posible flags.
 
