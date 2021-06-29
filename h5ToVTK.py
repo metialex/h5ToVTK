@@ -34,7 +34,6 @@ def eulerH5toVTK(output_path, files):
                     conc = np.array(hdf.get('Conc').get('0'))
 
                 except:
-                    print("No concentration field")
                     conc = 0.0
 
  
@@ -95,9 +94,8 @@ def eulerVTKwrite(file,NX,NY,NZ,dx,dy,dz,pressure,u,v,w,pressure_av,conc):
 
     #concentration field
     try:
-        print(conc[0][0][0])
         f.write(b'\n')
-        f.write(b'SCALARS Concentration float\n')
+        f.write(b'SCALARS concentration float\n')
         f.write(b'LOOKUP_TABLE default\n')
         for k in range(NZ):
             for j in range(NY):
@@ -117,7 +115,7 @@ def eulerVTKwrite(file,NX,NY,NZ,dx,dy,dz,pressure,u,v,w,pressure_av,conc):
                 f.write(struct.pack(">f",u[k-1][j-1][i-1]))
                 f.write(struct.pack(">f",v[k-1][j-1][i-1]))
                 f.write(struct.pack(">f",w[k-1][j-1][i-1]))
-    f.write(b'\nMETADATA\nINFORMATION 2\n')
+    f.write(b'\nMETADATA\nINFORMATION 0\n')
     f.close()
 
 def lagrangianH5toVTK(output_path, files):

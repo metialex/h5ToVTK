@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['h5ToVTK.py'],
-             pathex=['/home/vowinckel/h5ToVTK'],
+             pathex=['/home/vowinckel/applications/h5ToVTK'],
              binaries=[],
              datas=[],
              hiddenimports=[],
