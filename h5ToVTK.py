@@ -4,6 +4,7 @@ import sys
 import glob
 import os
 import argparse
+import struct
 
 def eulerH5toVTK(output_path, files):
         for input_file in files:
@@ -11,8 +12,7 @@ def eulerH5toVTK(output_path, files):
             print('Processing - ' + tmp + ' file')
             file = output_path + '/Data_' + tmp.split('.h5')[0] + '.vtk'
             with h5py.File(input_file, 'r') as hdf:
-                #ls = list(hdf.items())
-                #print('List of datasets: \n',ls)
+
                 NX = np.array(hdf.get('grid').get('NX'))[0]
                 NY = np.array(hdf.get('grid').get('NY'))[0]
                 NZ = np.array(hdf.get('grid').get('NZ'))[0]
@@ -29,74 +29,95 @@ def eulerH5toVTK(output_path, files):
                 u = np.array(hdf.get('u'))
                 v = np.array(hdf.get('v'))
                 w = np.array(hdf.get('w'))
+
+                try:
+                    conc = np.array(hdf.get('Conc').get('0'))
+
+                except:
+                    print("No concentration field")
+                    conc = 0.0
+
  
-                eulerVTKwrite(file,NX,NY,NZ,dx,dy,dz,pressure,u,v,w,pressure_av)
-def eulerVTKwrite(file,NX,NY,NZ,dx,dy,dz,pressure,u,v,w,pressure_av):
-    f = open(file,'w')
+                eulerVTKwrite(file,NX,NY,NZ,dx,dy,dz,pressure,u,v,w,pressure_av,conc)
+def eulerVTKwrite(file,NX,NY,NZ,dx,dy,dz,pressure,u,v,w,pressure_av,conc):
+    
+    f = open(file,'wb')
 
     #General information about file
-    f.write('# vtk DataFile Version 2.0\n')
-    f.write('Sample rectilinear grid\n')
-    f.write('ASCII\n')
-    f.write('DATASET RECTILINEAR_GRID\n')
+    f.write(b'# vtk DataFile Version 2.0\n')
+    f.write(b'Sample rectilinear grid\n')
+    f.write(b'BINARY\n')
+    f.write(b'DATASET RECTILINEAR_GRID\n')
 
     #Grid characteristics
-    f.write('DIMENSIONS ' + str(NX+1) + ' ' + str(NY+1) + ' ' + str(NZ+1) + '\n')
+    tmp = 'DIMENSIONS ' + str(NX+1) + ' ' + str(NY+1) + ' ' + str(NZ+1) + '\n'
+    sentence = bytearray(tmp.encode("ascii"))
+    f.write(sentence)
+    
     #X coordinates
-    f.write('X_COORDINATES ' + str(NX+1) + ' float\n')
-    f.write('0.0 ')
+    tmp = 'X_COORDINATES ' + str(NX+1) + ' float\n'
+    sentence = bytearray(tmp.encode("ascii"))
+    f.write(sentence)
+    f.write(struct.pack("f",0.0))
     for i in dx:
-        f.write(str(i)+' ')
-    f.write('\n')
+        f.write(struct.pack(">f",i))
+    f.write(b'\nMETADATA\nINFORMATION 0\n\n')
+    
     #Y coordinates
-    f.write('Y_COORDINATES ' + str(NY+1) + ' float\n')
-    f.write('0.0')
+    tmp = 'Y_COORDINATES ' + str(NY+1) + ' float\n'
+    sentence = bytearray(tmp.encode("ascii"))
+    f.write(sentence)
+    f.write(struct.pack("f",0.0))
     for i in dy:
-        f.write(str(i)+' ')
-    f.write('\n')
+        f.write(struct.pack(">f",i))
+    f.write(b'\nMETADATA\nINFORMATION 0\n\n')
+    
     #Z coordinates
-    f.write('Z_COORDINATES ' + str(NZ+1) + ' float\n')
-    f.write('0.0 ')
+    tmp = 'Z_COORDINATES ' + str(NZ+1) + ' float\n'
+    sentence = bytearray(tmp.encode("ascii"))
+    f.write(sentence)
+    f.write(struct.pack("f",0.0))
     for i in dz:
-        f.write(str(i)+' ')
-    f.write('\n')
+        f.write(struct.pack(">f",i))
+    f.write(b'\nMETADATA\nINFORMATION 0\n\n')
 
     #Pressure field
-    f.write('CELL_DATA ' + str(NX*NY*NZ) + '\n')
-    f.write('SCALARS p_rk float\n')
-    f.write('LOOKUP_TABLE default\n')
+    tmp = 'CELL_DATA ' + str(NX*NY*NZ) + '\n'
+    sentence = bytearray(tmp.encode("ascii"))
+    f.write(sentence)
+    f.write(b'SCALARS p_rk float\n')
+    f.write(b'LOOKUP_TABLE default\n')
     for k in range(NZ):
-        f.write('\n')
         for j in range(NY):
-            f.write('\n')
             for i in range(NX):
-                f.write(str(pressure[k-1][j-1][i-1]) + ' ')
-    #Pressure avg field
+                f.write(struct.pack(">f",pressure[k-1][j-1][i-1]))
+    f.write(b'\nMETADATA\nINFORMATION 0\n\n')
+
+    #concentration field
     try:
-        if(len(pressure_av) > 0):
-            f.write('\n')
-            #f.write('CELL_DATA ' + str(NX*NY*NZ) + '\n')
-            f.write('SCALARS p float\n')
-            f.write('LOOKUP_TABLE default\n')
-            for k in range(NZ):
-                f.write('\n')
-                for j in range(NY):
-                    f.write('\n')
-                    for i in range(NX):
-                        f.write(str(pressure_av[k-1][j-1][i-1]) + ' ')
+        print(conc[0][0][0])
+        f.write(b'\n')
+        f.write(b'SCALARS Concentration float\n')
+        f.write(b'LOOKUP_TABLE default\n')
+        for k in range(NZ):
+            for j in range(NY):
+                for i in range(NX):
+                    f.write(struct.pack(">f",conc[k-1][j-1][i-1]))
+        f.write(b'\nMETADATA\nINFORMATION 0\n\n')
     except:
-        print("No av pres data")
+        print("No concentration")
+
+    
     #Velocity field
-    f.write('\n')
-    f.write('VECTORS velocity float\n')
+    f.write(b'\n')
+    f.write(b'VECTORS velocity float\n')
     for k in range(NZ):
-        f.write('\n')
         for j in range(NY):
-            f.write('\n')
             for i in range(NX):
-                f.write(str(u[k-1][j-1][i-1]) + ' ')
-                f.write(str(v[k-1][j-1][i-1]) + ' ')
-                f.write(str(w[k-1][j-1][i-1]) + ' ')
+                f.write(struct.pack(">f",u[k-1][j-1][i-1]))
+                f.write(struct.pack(">f",v[k-1][j-1][i-1]))
+                f.write(struct.pack(">f",w[k-1][j-1][i-1]))
+    f.write(b'\nMETADATA\nINFORMATION 2\n')
     f.close()
 
 def lagrangianH5toVTK(output_path, files):
@@ -235,7 +256,8 @@ def lagrangian_extract_quantity(output_path, quantity_list, files):
                     f.write(str(j) + ',')
                 f.write('\n')
     
-
+def float_to_bin(num):
+    return format(struct.unpack('!I', struct.pack('!f', num))[0], '032b')
 
 parser = argparse.ArgumentParser()
 
@@ -248,6 +270,7 @@ parser.add_argument('-d', '--dat', type=str,required=False, help='Converting .h5
 parser.add_argument('-el', '--eulerLagrangian', action='store_true', help='Converting Eulerian and Lagrangian data')
 parser.add_argument('-e', '--euler', action='store_true', help='Converting only Eulerian data')
 parser.add_argument('-l', '--lagrangian', action='store_true', help='Converting only Lagrangian data')
+
 args = parser.parse_args()
     
 #Create output directory
@@ -335,3 +358,4 @@ else:
         print('Lagrangian data stop')
     except:
         print ('No Lagrangian data')
+
