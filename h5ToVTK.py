@@ -94,6 +94,7 @@ def eulerVTKwrite(file,NX,NY,NZ,dx,dy,dz,pressure,u,v,w,pressure_av,conc):
 
     #concentration field
     try:
+        print(conc[1][1][1])
         f.write(b'\n')
         f.write(b'SCALARS concentration float\n')
         f.write(b'LOOKUP_TABLE default\n')
