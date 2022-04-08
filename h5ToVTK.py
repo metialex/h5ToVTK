@@ -49,47 +49,44 @@ def eulerVTKwrite(file,NX,NY,NZ,dx,dy,dz,pressure,u,v,w,pressure_av,conc):
     f.write(b'DATASET RECTILINEAR_GRID\n')
 
     #Grid characteristics
-    tmp = 'DIMENSIONS ' + str(NX+1) + ' ' + str(NY+1) + ' ' + str(NZ+1) + '\n'
+    tmp = 'DIMENSIONS ' + str(NX) + ' ' + str(NY) + ' ' + str(NZ) + '\n'
     sentence = bytearray(tmp.encode("ascii"))
     f.write(sentence)
     
     #X coordinates
-    tmp = 'X_COORDINATES ' + str(NX+1) + ' float\n'
+    tmp = 'X_COORDINATES ' + str(NX) + ' float\n'
     sentence = bytearray(tmp.encode("ascii"))
     f.write(sentence)
-    f.write(struct.pack("f",0.0))
     for i in dx:
         f.write(struct.pack(">f",i))
     f.write(b'\nMETADATA\nINFORMATION 0\n\n')
     
     #Y coordinates
-    tmp = 'Y_COORDINATES ' + str(NY+1) + ' float\n'
+    tmp = 'Y_COORDINATES ' + str(NY) + ' float\n'
     sentence = bytearray(tmp.encode("ascii"))
     f.write(sentence)
-    f.write(struct.pack("f",0.0))
     for i in dy:
         f.write(struct.pack(">f",i))
     f.write(b'\nMETADATA\nINFORMATION 0\n\n')
     
     #Z coordinates
-    tmp = 'Z_COORDINATES ' + str(NZ+1) + ' float\n'
+    tmp = 'Z_COORDINATES ' + str(NZ) + ' float\n'
     sentence = bytearray(tmp.encode("ascii"))
     f.write(sentence)
-    f.write(struct.pack("f",0.0))
     for i in dz:
         f.write(struct.pack(">f",i))
     f.write(b'\nMETADATA\nINFORMATION 0\n\n')
 
     #Pressure field
-    tmp = 'CELL_DATA ' + str(NX*NY*NZ) + '\n'
+    tmp = 'CELL_DATA ' + str((NX-1)*(NY-1)*(NZ-1)) + '\n'
     sentence = bytearray(tmp.encode("ascii"))
     f.write(sentence)
     f.write(b'SCALARS p_rk float\n')
     f.write(b'LOOKUP_TABLE default\n')
-    for k in range(NZ):
-        for j in range(NY):
-            for i in range(NX):
-                f.write(struct.pack(">f",pressure[k-1][j-1][i-1]))
+    for k in range(NZ-1):
+        for j in range(NY-1):
+            for i in range(NX-1):
+                f.write(struct.pack(">f",pressure[k][j][i]))
     f.write(b'\nMETADATA\nINFORMATION 0\n\n')
 
     #concentration field
@@ -98,10 +95,10 @@ def eulerVTKwrite(file,NX,NY,NZ,dx,dy,dz,pressure,u,v,w,pressure_av,conc):
         f.write(b'\n')
         f.write(b'SCALARS concentration float\n')
         f.write(b'LOOKUP_TABLE default\n')
-        for k in range(NZ):
-            for j in range(NY):
-                for i in range(NX):
-                    f.write(struct.pack(">f",conc[k-1][j-1][i-1]))
+        for k in range(NZ-1):
+            for j in range(NY-1):
+                for i in range(NX-1):
+                    f.write(struct.pack(">f",conc[k][j][i]))
         f.write(b'\nMETADATA\nINFORMATION 0\n\n')
     except:
         print("No concentration")
@@ -110,12 +107,12 @@ def eulerVTKwrite(file,NX,NY,NZ,dx,dy,dz,pressure,u,v,w,pressure_av,conc):
     #Velocity field
     f.write(b'\n')
     f.write(b'VECTORS velocity float\n')
-    for k in range(NZ):
-        for j in range(NY):
-            for i in range(NX):
-                f.write(struct.pack(">f",u[k-1][j-1][i-1]))
-                f.write(struct.pack(">f",v[k-1][j-1][i-1]))
-                f.write(struct.pack(">f",w[k-1][j-1][i-1]))
+    for k in range(NZ-1):
+        for j in range(NY-1):
+            for i in range(NX-1):
+                f.write(struct.pack(">f",u[k][j][i]))
+                f.write(struct.pack(">f",v[k][j][i]))
+                f.write(struct.pack(">f",w[k][j][i]))
     f.write(b'\nMETADATA\nINFORMATION 0\n')
     f.close()
 
