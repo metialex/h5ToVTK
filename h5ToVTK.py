@@ -123,22 +123,46 @@ def lagrangianH5toVTK(output_path, files):
             file = output_path + '/Particle_' + tmp.split('.h5')[0] + '.vtk'
             with h5py.File(input_file, 'r') as hdf:
                 part_word = 'undefined'
+                Position_1 = np.empty([1, 3])
+                Position_2 = np.empty([1, 3])
+                Radius_1 = np.empty([1, 1])
+                Radius_2 = np.empty([1, 1])
+                Velocity_1 = np.empty([1, 3])
+                Velocity_2 = np.empty([1, 3])
+                Omega_1 = np.empty([1, 3])
+                Omega_2 = np.empty([1, 3])
                 try:
-                    list(hdf.get('mobile').items())
-                    part_word = 'mobile'
-                except:
+                    
+                    try:
+                        list(hdf.get('mobile').items())
+                        part_word = 'mobile'
+                        Position_1 = np.array(hdf.get(part_word).get('X'))
+                        Radius_1 = np.array(hdf.get(part_word).get('R'))
+                        Velocity_1 = np.array(hdf.get(part_word).get('U'))
+                        Omega_1 = np.array(hdf.get(part_word).get('Omega'))
+                    except:
+                        print('No mobile particles')
                     try:
                         list(hdf.get('fixed').items())
                         part_word = 'fixed'
+                        Position_2 = np.array(hdf.get(part_word).get('X'))
+                        Radius_2 = np.array(hdf.get(part_word).get('R'))
+                        Velocity_2 = np.array(hdf.get(part_word).get('U'))
+                        Omega_2 = np.array(hdf.get(part_word).get('Omega'))
+                        print(len(Position_2))
                     except:
-                        print('Lagrangian Data is weird...')
-                Position = np.array(hdf.get(part_word).get('X'))
-                Radius = np.array(hdf.get(part_word).get('R'))
-                
-                Velocity = np.array(hdf.get(part_word).get('U'))
-                Omega = np.array(hdf.get(part_word).get('Omega'))
-                #print(Velocity)
-                lagrangianVTKwrite(file,Position, Radius, Velocity, Omega)          
+                        print('No fixed particles')
+                    print('111')
+                    Position = np.concatenate((Position_1,Position_2))
+                    print('222')
+                    Radius = np.concatenate((Radius_1,Radius_2))
+                    Velocity = np.concatenate((Velocity_1,Velocity_2))
+                    Omega = np.concatenate((Omega_1,Omega_2))
+                    print('333')
+                    
+                    lagrangianVTKwrite(file,Position, Radius, Velocity, Omega)
+                except:
+                    print('Lagrangian data is weird')         
 def lagrangianVTKwrite(file,Position,Radius, Velocity, Omega):
     f = open(file,'w')
 
