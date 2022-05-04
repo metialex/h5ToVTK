@@ -149,16 +149,12 @@ def lagrangianH5toVTK(output_path, files):
                         Radius_2 = np.array(hdf.get(part_word).get('R'))
                         Velocity_2 = np.array(hdf.get(part_word).get('U'))
                         Omega_2 = np.array(hdf.get(part_word).get('Omega'))
-                        print(len(Position_2))
                     except:
                         print('No fixed particles')
-                    print('111')
                     Position = np.concatenate((Position_1,Position_2))
-                    print('222')
                     Radius = np.concatenate((Radius_1,Radius_2))
                     Velocity = np.concatenate((Velocity_1,Velocity_2))
                     Omega = np.concatenate((Omega_1,Omega_2))
-                    print('333')
                     
                     lagrangianVTKwrite(file,Position, Radius, Velocity, Omega)
                 except:
