@@ -1,3 +1,4 @@
+from unittest import result
 import numpy as np
 import h5py
 import sys
@@ -272,12 +273,341 @@ def lagrangian_extract_quantity(output_path, quantity_list, files):
                     f.write(str(j) + ',')
                 f.write('\n')
     
-def float_to_bin(num):
-    return format(struct.unpack('!I', struct.pack('!f', num))[0], '032b')
+def write_Reader_Vector_Velocity_xmf(path,no_files,Nx,Ny,Nz,time):
+    with open("Reader_vector_python.xmf",'w') as f:
+        Nx_i = Nx - 1
+        Ny_i = Ny - 1
+        Nz_i = Nz - 1
+        N_vec = 3
+
+        f.write(f'<?xml version=\"1.0\" ?>\n')
+        f.write(f'<!DOCTYPE Xdmf SYSTEM \"Xdmf.dtd\" []>\n')
+        f.write(f'<Xdmf Version=\"2.0\">\n')
+        f.write(f'  <Domain>\n\n')
+
+        f.write(f'    <Topology TopologyType="3DRectMesh" NumberOfElements="{Nz_i:d} {Ny_i:d} {Nx_i:d}"/>\n')
+        f.write(f'    <Geometry GeometryType="VXVYVZ">\n')
+        f.write(f'      <DataItem ItemType="HyperSlab" Dimensions="{Nx_i:d}" Type="HyperSlab">\n')
+        f.write(f'        <DataItem Dimensions="3" Format="XML">\n')
+        f.write(f'          0    1    {Nx_i:d}\n')
+        f.write(f'        </DataItem>\n')
+        f.write(f'        <DataItem Format="HDF" Dimensions="{Nx_i:d}">\n')
+        f.write(f'          Vector_{time[0][0]:d}.h5:/grid/xc\n')
+        f.write(f'        </DataItem>\n')
+        f.write(f'      </DataItem>\n\n')
+
+        f.write(f'      <DataItem ItemType="HyperSlab" Dimensions="{Ny_i:d}" Type="HyperSlab">\n')
+        f.write(f'        <DataItem Dimensions="3" Format="XML">\n')
+        f.write(f'          0    1    {Ny_i:d}\n')
+        f.write(f'        </DataItem>\n')
+        f.write(f'        <DataItem Format="HDF" Dimensions="{Ny_i:d}">\n')
+        f.write(f'          Vector_{time[0][0]:d}.h5:/grid/yc\n')
+        f.write(f'        </DataItem>\n')
+        f.write(f'      </DataItem>\n\n')
+
+        f.write(f'      <DataItem ItemType="HyperSlab" Dimensions="{Nz_i:d}" Type="HyperSlab">\n')
+        f.write(f'        <DataItem Dimensions="3" Format="XML">\n')
+        f.write(f'          0    1    {Nz_i:d}\n')
+        f.write(f'        </DataItem>\n')
+        f.write(f'        <DataItem Format="HDF" Dimensions="{Nz_i:d}">\n')
+        f.write(f'          Vector_{time[0][0]:d}.h5:/grid/zc\n')
+        f.write(f'        </DataItem>\n')
+        f.write(f'      </DataItem>\n')
+        f.write(f'    </Geometry>\n\n')
+
+        f.write(f'    <Grid Name="TemporalGrid" GridType="Collection" CollectionType="Temporal">\n\n')
+
+
+        for i in range(no_files):
+            f.write(f'      <Grid Name="SpatialGrid_{(i-1):d}" GridType="Uniform">\n', )
+            f.write(f'        <Time Value="{time[i][1]:f}"/>\n')
+            f.write(f'        <Topology Reference="/Xdmf/Domain/Topology[1]"/>\n')
+            f.write(f'        <Geometry Reference="/Xdmf/Domain/Geometry[1]"/>\n')
+            f.write(f'        <Attribute Name="vector" AttributeType="Vector" Center="Node">\n')
+            f.write(f'          <DataItem ItemType="HyperSlab" Dimensions="{Nz_i:d} {Ny_i:d} {Nx_i:d} {N_vec:d}" Type="HyperSlab">\n')
+            f.write(f'            <DataItem Dimensions="3 4" Format="XML">\n')
+            f.write(f'              0    0    0    0 \n')
+            f.write(f'              1    1    1    1 \n')
+            f.write(f'              {Nz_i:d} {Ny_i:d} {Nx_i:d} {N_vec:d}\n')
+            f.write(f'            </DataItem>\n')
+            f.write(f'            <DataItem Format="HDF" NumberType="Double" Precision="8" Dimensions="{Nz_i:d} {Ny_i:d} {Nx_i:d} {N_vec:d}">\n')
+            f.write(f'              Vector_{time[i][0]:f}.h5:/vector_velocity\n')
+            f.write(f'            </DataItem>\n')
+            f.write(f'          </DataItem>\n')
+            f.write(f'        </Attribute>\n')
+            f.write(f'      </Grid>\n\n')
+
+        f.write(f'    </Grid>\n')
+        f.write(f'  </Domain>\n')
+        f.write(f'</Xdmf>\n')
+        f.close()
+        print('Wrote  Reader_vector.xmf\n')
+
+def write_Reader_Scalar_Velocity_xmf(path, no_files, time, Nx, Ny, Nz, var):
+
+    if var == "u":
+        N = Nx
+        Nx_i = Nx
+        Ny_i = Ny - 1
+        Nz_i = Nz - 1   
+        x = 'xu'
+        y = 'yc'
+        z = 'zc'
+    elif var == "v":
+        N = Ny
+        Nx_i = Nx - 1
+        Ny_i = Ny
+        Nz_i = Nz - 1 
+        x = 'xc'
+        y = 'yv'
+        z = 'zc'
+    elif var == "w":
+        N = Nz
+        Nx_i = Nx - 1
+        Ny_i = Ny - 1
+        Nz_i = Nz 
+        x = 'xc'
+        y = 'yc'
+        z = 'zw'
+
+    with open('Reader_'+var+'.xmf','w') as f:
+    
+        f.write(f'<?xml version=\"1.0\" ?>\n') 
+        f.write(f'<!DOCTYPE Xdmf SYSTEM \"Xdmf.dtd\" []>\n')
+        f.write(f'<Xdmf Version=\"2.0\">\n')
+        f.write(f'  <Domain>\n\n')
+
+        f.write(f'    <Topology TopologyType="3DRectMesh" NumberOfElements="{Nz_i:d} {Ny_i:d} {Nx_i:d}"/>\n')
+        f.write(f'    <Geometry GeometryType="VXVYVZ">\n')
+        f.write(f'      <DataItem ItemType="HyperSlab" Dimensions="{Nx_i:d}" Type="HyperSlab">\n')
+        f.write(f'        <DataItem Dimensions="3" Format="XML">\n')
+        f.write(f'          0    1    {Nx_i:d}\n')
+        f.write(f'        </DataItem>\n')
+        f.write(f'        <DataItem Format="HDF" Dimensions="{Nx:d}">\n')
+        f.write(f'          Data_{time[0][0]:d}.h5:/grid/{x}\n')
+        f.write(f'        </DataItem>\n')
+        f.write(f'      </DataItem>\n\n')
+
+        f.write(f'      <DataItem ItemType="HyperSlab" Dimensions="{Ny_i:d}" Type="HyperSlab">\n')
+        f.write(f'        <DataItem Dimensions="3" Format="XML">\n')
+        f.write(f'          0    1    {Ny_i:d}\n')
+        f.write(f'        </DataItem>\n')
+        f.write(f'        <DataItem Format="HDF" Dimensions="{Ny:d}">\n')
+        f.write(f'          Data_{time[0][0]:d}.h5:/grid/{y}\n')
+        f.write(f'        </DataItem>\n')
+        f.write(f'      </DataItem>\n\n')
+
+        f.write(f'      <DataItem ItemType="HyperSlab" Dimensions="{Nz_i:d}" Type="HyperSlab">\n')
+        f.write(f'        <DataItem Dimensions="3" Format="XML">\n')
+        f.write(f'          0    1    {Nz_i:d}\n')
+        f.write(f'        </DataItem>\n')
+        f.write(f'        <DataItem Format="HDF" Dimensions="{Nz_i:d}">\n')
+        f.write(f'          Data_{time[0][0]:d}.h5:/grid/{z}\n')
+        f.write(f'        </DataItem>\n')
+        f.write(f'      </DataItem>\n')
+        f.write(f'    </Geometry>\n\n')
+
+        f.write(f'    <Grid Name="TemporalGrid" GridType="Collection" CollectionType="Temporal">\n\n')
+
+
+        for i in range(no_files):
+            f.write(f'      <Grid Name="SpatialGrid_{i-1:d}" GridType="Uniform">\n')
+            f.write(f'        <Time Value="{time[i][1]:f}"/>\n')
+            f.write(f'        <Topology Reference="/Xdmf/Domain/Topology[1]"/>\n')
+            f.write(f'        <Geometry Reference="/Xdmf/Domain/Geometry[1]"/>\n')
+            f.write(f'        <Attribute Name="{var}" AttributeType="Scalar" Center="Node">\n')
+            f.write(f'          <DataItem ItemType="HyperSlab" Dimensions="{Nz_i:d} {Ny_i:d} {Nx_i:d}" Type="HyperSlab">\n')
+            f.write(f'            <DataItem Dimensions="3 3" Format="XML">\n')
+            f.write(f'              0    0    0 \n')
+            f.write(f'              1    1    1\n')
+            f.write(f'              {Nz_i:d} {Ny_i:d} {Nx_i:d}\n')
+            f.write(f'            </DataItem>\n')
+            f.write(f'            <DataItem Format="HDF" NumberType="Double" Precision="8" Dimensions="{Nx:d} {Ny:d} {Nz:d}">\n')
+            f.write(f'              Data_{time[i][0]:d}.h5:/{var}\n')
+            f.write(f'            </DataItem>\n')
+            f.write(f'          </DataItem>\n')
+            f.write(f'        </Attribute>\n')
+            f.write(f'        <Attribute Name="vf{var}" AttributeType="Scalar" Center="Node">\n')
+            f.write(f'          <DataItem ItemType="HyperSlab" Dimensions="{Nz_i:d} {Ny_i:d} {Nx_i:d}" Type="HyperSlab">\n')
+            f.write(f'            <DataItem Dimensions="3 3" Format="XML">\n')
+            f.write(f'              0    0    0 \n')
+            f.write(f'              1    1    1\n')
+            f.write(f'              {Nz_i:d} {Ny_i:d} {Nx_i:d}\n')
+            f.write(f'            </DataItem>\n')
+            f.write(f'            <DataItem Format="HDF" NumberType="Double" Precision="8" Dimensions="{Nx:d} {Ny:d} {Nz:d}">\n')
+            f.write(f'              Data_{time[i][0]:d}.h5:/vf{var}\n')
+            f.write(f'            </DataItem>\n')
+            f.write(f'          </DataItem>\n')
+            f.write(f'        </Attribute>\n')
+            f.write(f'      </Grid>\n\n')
+
+
+        f.write(f'    </Grid>\n')
+        f.write(f'  </Domain>\n')
+        f.write(f'</Xdmf>\n')
+
+    print('Wrote  Reader_'+var+'.xmf\n')
+
+def write_Reader_Particle_xmf(path, no_files, time, type, Type, Np, att_list):
+
+    with open('Reader_p_'+type+'.xmf','w') as f:
+
+        f.write(f'<?xml version="1.0" ?>\n')
+        f.write(f'<!DOCTYPE Xdmf SYSTEM "Xdmf.dtd" []>\n')
+        f.write(f'<Xdmf Version="2.0">\n')
+        f.write(f'  <Domain>\n\n')
+        f.write(f'    <Grid Name="TemporalGrid" GridType="Collection" CollectionType="Temporal">\n')
+
+        for i in range(no_files):
+            f.write(f'      <Grid Name="{Type}Grid_{i-1:d}">\n')
+            f.write(f'        <Time Value="{time[i][1]:f}"/>\n')
+            f.write(f'        <Topology Type="Polyvertex" NumberOfElements="{Np:d}" />\n\n') 
+            f.write(f'        <Geometry Type="XYZ">\n')
+            f.write(f'          <DataItem Format="HDF" Dimensions="{Np:d} 3">\n')
+            f.write(f'            Particle_{time[i][0]:d}.h5:/{type}/X\n')
+            f.write(f'          </DataItem>\n')
+            f.write(f'        </Geometry>\n')
+            
+            for j in range(len(att_list)):
+                f.write(f'\n        <Attribute Name="{att_list[j][0]}" AttributeType="{att_list[j][2]}" Center="Node">\n')
+                f.write(f'          <DataItem Format="HDF" NumberType="Double" Dimensions="{Np:d} {att_list[j][1]:d}">\n')
+                f.write(f'            Particle_{time[i][0]:d}.h5:/{type}/{att_list[j][0]}\n')
+                f.write(f'          </DataItem>\n')
+                f.write(f'        </Attribute>\n')
+
+            f.write(f'      </Grid>\n\n')
+
+
+        f.write(f'    </Grid>\n')
+        f.write(f'  </Domain>\n')
+        f.write(f'</Xdmf>\n')
+
+    print('Wrote  Reader_p_'+type+'.xmf\n')
+
+def write_Reader_scalar_xmf(path, no_files, time, Nx, Ny, Nz, var,var_name):
+
+    Nx_i = Nx - 1
+    Ny_i = Ny - 1
+    Nz_i = Nz - 1   
+
+
+    with open(f'Reader_{var_name}.xmf','w') as f:
+
+        f.write(f'<?xml version=\"1.0\" ?>\n') 
+        f.write(f'<!DOCTYPE Xdmf SYSTEM \"Xdmf.dtd\" []>\n')
+        f.write(f'<Xdmf Version=\"2.0\">\n')
+        f.write(f'  <Domain>\n\n')
+
+        f.write(f'    <Topology TopologyType="3DRectMesh" NumberOfElements="{Nz_i:d} {Ny_i:d} {Nx_i:d}"/>\n')
+        f.write(f'    <Geometry GeometryType="VXVYVZ">\n')
+        f.write(f'      <DataItem ItemType="HyperSlab" Dimensions="{Nx_i:d}" Type="HyperSlab">\n')
+        f.write(f'        <DataItem Dimensions="3" Format="XML">\n')
+        f.write(f'          0    1    {Nx_i:d}\n')
+        f.write(f'        </DataItem>\n')
+        f.write(f'        <DataItem Format="HDF" Dimensions="{Nx:d}">\n')
+        f.write(f'          Data_{time[0][0]:d}.h5:/grid/xc\n')
+        f.write(f'        </DataItem>\n')
+        f.write(f'      </DataItem>\n\n')
+
+        f.write(f'      <DataItem ItemType="HyperSlab" Dimensions="{Ny_i:d}" Type="HyperSlab">\n')
+        f.write(f'        <DataItem Dimensions="3" Format="XML">\n')
+        f.write(f'          0    1   {Ny_i:d}\n')
+        f.write(f'        </DataItem>\n')
+        f.write(f'        <DataItem Format="HDF" Dimensions="{Ny:d}">\n')
+        f.write(f'          Data_{time[0][0]:d}.h5:/grid/yc\n')
+        f.write(f'        </DataItem>\n')
+        f.write(f'      </DataItem>\n\n')
+
+        f.write(f'      <DataItem ItemType="HyperSlab" Dimensions="{Nz_i:d}" Type="HyperSlab">\n')
+        f.write(f'        <DataItem Dimensions="3" Format="XML">\n')
+        f.write(f'          0    1   {Nz_i:d}\n')
+        f.write(f'        </DataItem>\n')
+        f.write(f'        <DataItem Format="HDF" Dimensions="{Nz:d}">\n')
+        f.write(f'          Data_{time[0][0]:d}.h5:/grid/zc\n')
+        f.write(f'        </DataItem>\n')
+        f.write(f'      </DataItem>\n')
+        f.write(f'    </Geometry>\n\n')
+
+        f.write(f'    <Grid Name="TemporalGrid" GridType="Collection" CollectionType="Temporal">\n\n')
+
+        for i in range(no_files):
+
+            f.write(f'      <Grid Name="SpatialGrid_{i-1:d}" GridType="Uniform">\n')
+            f.write(f'        <Time Value="{time[i][1]:f}"/>\n')
+            f.write(f'        <Topology Reference="/Xdmf/Domain/Topology[1]"/>\n')
+            f.write(f'        <Geometry Reference="/Xdmf/Domain/Geometry[1]"/>\n')
+            f.write(f'        <Attribute Name="{var_name}" AttributeType="Scalar" Center="Node">\n')
+            f.write(f'          <DataItem ItemType="HyperSlab" Dimensions="{Nz_i:d} {Ny_i:d} {Nx_i:d}" Type="HyperSlab">\n')
+            f.write(f'            <DataItem Dimensions="3 3" Format="XML">\n')
+            f.write(f'              0    0    0 \n')
+            f.write(f'              1    1    1\n')
+            f.write(f'              {Nz_i:d} {Ny_i:d} {Nx_i:d}\n')
+            f.write(f'            </DataItem>\n')
+            f.write(f'            <DataItem Format="HDF" NumberType="Double" Precision="8" Dimensions="{Nx:d} {Ny:d} {Nz:d}">\n')
+            f.write(f'              Data_{time[i][0]:d}.h5:/{var}\n')
+            f.write(f'            </DataItem>\n')
+            f.write(f'          </DataItem>\n')
+            f.write(f'        </Attribute>\n')
+            f.write(f'      </Grid>\n\n')
+
+
+        f.write(f'    </Grid>\n')
+        f.write(f'  </Domain>\n')
+        f.write(f'</Xdmf>\n')
+
+
+
+    print(f'Wrote  Reader_{var_name}.xmf\n')
+
+def if_exists(file,subdir):
+    with h5py.File(file, 'r') as hdf:
+        if hdf.get(subdir) is not None:
+            return 1
+        else:
+            return 0
+
+def attributes(file,subdir):
+    result = []
+    with h5py.File(file, 'r') as hdf:
+        attributes = list(hdf.get(subdir))
+        for attribute in attributes:
+            size = len(hdf.get(subdir).get(attribute)[0])
+            if size == 3: type = 'Vector'
+            elif size == 1: type = 'Scalar'
+            elif size == 9: type = 'Tensor'
+            else: continue
+            result.append([attribute,size,type])
+    return result
+
+def numper_of_particles(file,subdir):
+    with h5py.File(file, 'r') as hdf:
+        attributes = list(hdf.get(subdir))
+        Np = len(hdf.get(subdir).get(attributes[0]))
+    return Np
+
+def set_time(files):
+    res = []
+    for file in files:
+        tmp = file.split('_')[1]
+        idx = int(tmp.split('.h5')[0])
+        with h5py.File(file, 'r') as hdf:
+            time = hdf.get('time')[0]
+        res.append([idx,time])
+    return res
+
+def set_Nx_Ny_Nz(file):
+    with h5py.File(file, 'r') as hdf:
+        NX = hdf.get('grid').get('NX')[0]
+        NY = hdf.get('grid').get('NY')[0]
+        NZ = hdf.get('grid').get('NZ')[0]
+    return NX,NY,NZ
+
 
 parser = argparse.ArgumentParser()
 
-
+group = parser.add_mutually_exclusive_group()
+group.add_argument('-v','--vtk',action='store_true',help='Convert .h5 data into .vtk files')
+group.add_argument('-x','--xdmf',action='store_true', help='Create .xmf files for .h5 files')
 parser.add_argument('-i', '--index', type=str,required=False, help='index range of data to convert (e.g. -i 2:5)')
 parser.add_argument('-d', '--dat', type=str,required=False, help='Converting .h5 file into .dat file.\
      Avaliable variables - F_IBM, F_coll, F_rigid, Fc, Int_Omega_old,\
@@ -286,92 +616,134 @@ parser.add_argument('-d', '--dat', type=str,required=False, help='Converting .h5
 parser.add_argument('-el', '--eulerLagrangian', action='store_true', help='Converting Eulerian and Lagrangian data')
 parser.add_argument('-e', '--euler', action='store_true', help='Converting only Eulerian data')
 parser.add_argument('-l', '--lagrangian', action='store_true', help='Converting only Lagrangian data')
+parser.add_argument('-as', '--add_scalar', type=str,required=False, help='')
 
 args = parser.parse_args()
-    
-#Create output directory
-directory = 'vtk_out/'
-try:
-    os.stat(directory)
-except:
-    os.mkdir(directory)
 
-#initializing default variables
-euler_keyword = 'Data_'
-lagrang_keyword = 'Particle_'
-
+#defaul paths
 input_path = ''
 output_path = 'vtk_out/'
 
+#defaul indexes
 index_min = 0
 index_max = 1e+10
 
-if args.dat:
-    quantity_list = []
-    for i in (args.dat.split(',')):
-        quantity_list.append(i)
-    files = findFiles(input_path,lagrang_keyword, index_min, index_max)
-    lagrangian_extract_quantity(directory, quantity_list, files)
+#Keywords
+euler_keyword = 'Data_'
+lagrang_keyword = 'Particle_'
+
+if args.xdmf:
+    output_path = ''
+    if args.index:
+            index_min = int(args.index.split(':')[0])
+            index_max = int(args.index.split(':')[1])
+    #Create Lagrangian dataset
+    files_l = findFiles(input_path,lagrang_keyword, index_min, index_max)
+
+    #The information about number of particles and attributes is taken from the 1st Particle.h5 file
+    #mobile particles
+    print(files_l)
+    if if_exists(files_l[0],'mobile'):
+        att_list = attributes(files_l[0],'mobile')
+        Np = numper_of_particles(files_l[0],'mobile')
+        time = set_time(files_l)
+        write_Reader_Particle_xmf(output_path, len(files_l), time, 'mobile', 'Mobile', Np, att_list)
+
+    #fixed particles
+    if if_exists(files_l[0],'fixed'):
+        att_list = attributes(files_l[0],'fixed')
+        Np = numper_of_particles(files_l[0],'fixed')
+        time = set_time(files_l)
+        write_Reader_Particle_xmf(output_path, len(files_l), time, 'fixed', 'Fixed', Np, att_list)
     
-elif args.eulerLagrangian:
-    if args.index:
-        index_min = int(args.index.split(':')[0])
-        index_max = int(args.index.split(':')[1])
+    #Eulerian Fields
+    files_e = findFiles(input_path,euler_keyword, index_min, index_max)
+    time = set_time(files_e)
+    Nx,Ny,Nz = set_Nx_Ny_Nz(files_e[0])
+    #Velocity field
+    write_Reader_Scalar_Velocity_xmf(output_path, len(files_e), time, Nx, Ny, Nz, 'u')
+    write_Reader_Scalar_Velocity_xmf(output_path, len(files_e), time, Nx, Ny, Nz, 'v')
+    write_Reader_Scalar_Velocity_xmf(output_path, len(files_e), time, Nx, Ny, Nz, 'w')
+    #Pressure field
+    write_Reader_scalar_xmf(output_path, len(files_e), time, Nx, Ny, Nz, 'p','pressure')
+    if args.add_scalar is not None:
+        if if_exists(files_e[0],args.add_scalar):
+            write_Reader_scalar_xmf(output_path, len(files_e), time, Nx, Ny, Nz, args.add_scalar, 'C')
+    
+elif args.vtk:
+    #Create output directory
+    directory = 'vtk_out/'
+    try:
+        os.stat(directory)
+    except:
+        os.mkdir(directory)
 
-    try:
-        print('Eulerian data start')
-        files_e = findFiles(input_path,euler_keyword, index_min, index_max)
-        eulerH5toVTK(output_path, files_e)
-        print('Eulerian data stop')
-    except:
-        print ('No Eulerian data')
-    try:
-        print('Lagrangian data start')
-        files_l = findFiles(input_path,lagrang_keyword, index_min, index_max)
-        lagrangianH5toVTK(output_path, files_l)
-        print('Lagrangian data stop')
-    except:
-        print ('No Lagrangian data')
-elif args.euler:
-    if args.index:
-        index_min = int(args.index.split(':')[0])
-        index_max = int(args.index.split(':')[1])
+    if args.dat:
+        quantity_list = []
+        for i in (args.dat.split(',')):
+            quantity_list.append(i)
+        files = findFiles(input_path,lagrang_keyword, index_min, index_max)
+        lagrangian_extract_quantity(directory, quantity_list, files)
+        
+    elif args.eulerLagrangian:
+        if args.index:
+            index_min = int(args.index.split(':')[0])
+            index_max = int(args.index.split(':')[1])
 
-    try:
-        print('Eulerian data start')
-        files_e = findFiles(input_path,euler_keyword, index_min, index_max)
-        eulerH5toVTK(output_path, files_e)
-        print('Eulerian data stop')
-    except:
-        print ('No Eulerian data')
-elif args.lagrangian:
-    if args.index:
-        index_min = int(args.index.split(':')[0])
-        index_max = int(args.index.split(':')[1])
-    try:
-        print('Lagrangian data start')
-        files_l = findFiles(input_path,lagrang_keyword, index_min, index_max)
-        lagrangianH5toVTK(output_path, files_l)
-        print('Lagrangian data stop')
-    except:
-        print ('No Lagrangian data')
-else:
-    if args.index:
-        index_min = int(args.index.split(':')[0])
-        index_max = int(args.index.split(':')[1])
+        try:
+            print('Eulerian data start')
+            files_e = findFiles(input_path,euler_keyword, index_min, index_max)
+            eulerH5toVTK(output_path, files_e)
+            print('Eulerian data stop')
+        except:
+            print ('No Eulerian data')
+        try:
+            print('Lagrangian data start')
+            files_l = findFiles(input_path,lagrang_keyword, index_min, index_max)
+            lagrangianH5toVTK(output_path, files_l)
+            print('Lagrangian data stop')
+        except:
+            print ('No Lagrangian data')
+    elif args.euler:
+        if args.index:
+            index_min = int(args.index.split(':')[0])
+            index_max = int(args.index.split(':')[1])
 
-    try:
-        print('Eulerian data start')
-        files_e = findFiles(input_path,euler_keyword, index_min, index_max)
-        eulerH5toVTK(output_path, files_e)
-        print('Eulerian data stop')
-    except:
-        print ('No Eulerian data')
-    try:
-        print('Lagrangian data start')
-        files_l = findFiles(input_path,lagrang_keyword, index_min, index_max)
-        lagrangianH5toVTK(output_path, files_l)
-        print('Lagrangian data stop')
-    except:
-        print ('No Lagrangian data')
+        try:
+            print('Eulerian data start')
+            files_e = findFiles(input_path,euler_keyword, index_min, index_max)
+            eulerH5toVTK(output_path, files_e)
+            print('Eulerian data stop')
+        except:
+            print ('No Eulerian data')
+    elif args.lagrangian:
+        if args.index:
+            index_min = int(args.index.split(':')[0])
+            index_max = int(args.index.split(':')[1])
+        try:
+            print('Lagrangian data start')
+            files_l = findFiles(input_path,lagrang_keyword, index_min, index_max)
+            lagrangianH5toVTK(output_path, files_l)
+            print('Lagrangian data stop')
+        except:
+            print ('No Lagrangian data')
+    else:
+        if args.index:
+            index_min = int(args.index.split(':')[0])
+            index_max = int(args.index.split(':')[1])
+
+        try:
+            print('Eulerian data start')
+            files_e = findFiles(input_path,euler_keyword, index_min, index_max)
+            eulerH5toVTK(output_path, files_e)
+            print('Eulerian data stop')
+        except:
+            print ('No Eulerian data')
+        try:
+            print('Lagrangian data start')
+            files_l = findFiles(input_path,lagrang_keyword, index_min, index_max)
+            lagrangianH5toVTK(output_path, files_l)
+            print('Lagrangian data stop')
+        except:
+            print ('No Lagrangian data')
 
