@@ -1,7 +1,5 @@
-from unittest import result
 import numpy as np
 import h5py
-import sys
 import glob
 import os
 import argparse
@@ -642,7 +640,6 @@ if args.xdmf:
 
     #The information about number of particles and attributes is taken from the 1st Particle.h5 file
     #mobile particles
-    print(files_l)
     if if_exists(files_l[0],'mobile'):
         att_list = attributes(files_l[0],'mobile')
         Np = numper_of_particles(files_l[0],'mobile')
