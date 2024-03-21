@@ -5,18 +5,20 @@ This utility is made to convert the Lagrangian and Eulerian output .h5 data file
  _step 1_  - clone repository 
  `https://github.com/metialex/h5ToVTK.git`
  
- _step 2_ - run the executable file - `./dist/h5ToVTK` or python file `python3 h5ToVTK.py`
+ _step 2_ - run python file `python3 h5ToVTK.py`
 
 ## Options
 There are different flags which can be chosen as an input arguments: <br>
-`-e -l -el` corresponds to different output files. With the first flag `-e` only Eulerian data (Data_x.h5) will be processed, while `-l` corresponds to Lagrangian data (Particle_x.h5) and with flag `-el` both output data types will be processed <br>
+`-e -l -el` corresponds to different output files. With the first flag `-e` only Eulerian data (Data_x.h5) will be processed, while `-l` corresponds to Lagrangian data (Particle_x.h5), and with the flag `-el` both output data types will be processed <be>
+
+`-x` by using this flag you will create corresponding .xmf output files instead of creating VTK files. It is much faster to create .xmf reading files, so try to use this flag all the time. The only disadvantage it has by comparison with .vtk files is the fact that vectors are represented as three scalars for velocity, that is why it would be impossible to visualize 3D streamlines using .xmf output files.
 
 `-i` provides to choose the range of the anylized files, e.g. with `-e -i 2:5` files Data_2.h5, Data_3.h5, Data_4.h5, Data_5.h5 will be converted to .vtk format. <br>
 
-`-d` used to extract certain data from Lagrangian particles and save it to corresponding .dat file. For example, `-d F` will excract the force _F_ from all Particle_x.h5 files and save it to three files _F0.dat_, _F1.dat_, _F2.dat_. These files contain three vectors components for each particle over time.
-`-h` help flag shows all posible flags.
+`-d` used to extract certain data from Lagrangian particles and save it to the corresponding .dat file. For example, `-d F` will extract the force _F_ from all Particle_x.h5 files and save it to three files _F0.dat_, _F1.dat_, _F2.dat_. These files contain three vector components for each particle over time.
+`-h` help flag shows all possible flags.
 
 ## Other
 Pay attention that .vtk files are saved in ASCII format.
 Right now it is impossible to specify several variables with `-d` flag, so if you want to extract several quantities from Lagrangian data files you have to run this application several times. <br>
-Eulerian files must satisfy the following name pattern **Data_%i.h5** while Lagrangian files also have to match the simmilar pattern **Particle_%i.h5**
+Eulerian files must satisfy the following name pattern **Data_%i.h5** while Lagrangian files also have to match the similar pattern **Particle_%i.h5**
