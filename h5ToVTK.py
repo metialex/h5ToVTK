@@ -4,6 +4,7 @@ import glob
 import os
 import argparse
 import struct
+import sys
 
 def eulerH5toVTK(output_path, files):
         for input_file in files:
@@ -636,25 +637,34 @@ if args.xdmf:
             index_min = int(args.index.split(':')[0])
             index_max = int(args.index.split(':')[1])
     #Create Lagrangian dataset
-    files_l = findFiles(input_path,lagrang_keyword, index_min, index_max)
+    try:
+        files_l = findFiles(input_path,lagrang_keyword, index_min, index_max)
 
-    #The information about number of particles and attributes is taken from the 1st Particle.h5 file
-    #mobile particles
-    if if_exists(files_l[0],'mobile'):
-        att_list = attributes(files_l[0],'mobile')
-        Np = numper_of_particles(files_l[0],'mobile')
-        time = set_time(files_l)
-        write_Reader_Particle_xmf(output_path, len(files_l), time, 'mobile', 'Mobile', Np, att_list)
+        #The information about number of particles and attributes is taken from the 1st Particle.h5 file
+        #mobile particles
+        if if_exists(files_l[0],'mobile'):
+            att_list = attributes(files_l[0],'mobile')
+            Np = numper_of_particles(files_l[0],'mobile')
+            time = set_time(files_l)
+            write_Reader_Particle_xmf(output_path, len(files_l), time, 'mobile', 'Mobile', Np, att_list)
 
-    #fixed particles
-    if if_exists(files_l[0],'fixed'):
-        att_list = attributes(files_l[0],'fixed')
-        Np = numper_of_particles(files_l[0],'fixed')
-        time = set_time(files_l)
-        write_Reader_Particle_xmf(output_path, len(files_l), time, 'fixed', 'Fixed', Np, att_list)
+        #fixed particles
+        if if_exists(files_l[0],'fixed'):
+            att_list = attributes(files_l[0],'fixed')
+            Np = numper_of_particles(files_l[0],'fixed')
+            time = set_time(files_l)
+            write_Reader_Particle_xmf(output_path, len(files_l), time, 'fixed', 'Fixed', Np, att_list)
     
-    #Eulerian Fields
-    files_e = findFiles(input_path,euler_keyword, index_min, index_max)
+    except:
+        print("Lagrangian files are not found")
+    
+    try:
+        #Eulerian Fields
+        files_e = findFiles(input_path,euler_keyword, index_min, index_max)
+    except:
+        print("Eulerian files are not found")
+        sys.exit()
+        
     time = set_time(files_e)
     Nx,Ny,Nz = set_Nx_Ny_Nz(files_e[0])
     #Velocity field
