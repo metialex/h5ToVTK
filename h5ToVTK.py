@@ -601,6 +601,25 @@ def set_Nx_Ny_Nz(file):
         NZ = hdf.get('grid').get('NZ')[0]
     return NX,NY,NZ
 
+def write_Rotn_paraview(files_l):
+    for file_name in files_l:
+        with h5py.File(file_name,"a") as f:
+            #delete variable if exists
+            if "mobile/Rotn_paraview" in f:
+                del f["mobile/Rotn_paraview"]
+            
+            Rotn_paraview = f["mobile/Rotn"][:]
+            
+            for jj in range(len(f["mobile/Rotn"])):
+                Rotn_paraview[jj][1] = f["mobile/Rotn"][jj][3]
+                Rotn_paraview[jj][2] = f["mobile/Rotn"][jj][6]
+                Rotn_paraview[jj][3] = f["mobile/Rotn"][jj][1]
+                Rotn_paraview[jj][5] = f["mobile/Rotn"][jj][7]
+                Rotn_paraview[jj][6] = f["mobile/Rotn"][jj][2]
+                Rotn_paraview[jj][7] = f["mobile/Rotn"][jj][5]
+                
+            f.create_dataset("mobile/Rotn_paraview", data=Rotn_paraview)
+
 
 parser = argparse.ArgumentParser()
 
@@ -615,6 +634,8 @@ parser.add_argument('-d', '--dat', type=str,required=False, help='Converting .h5
 parser.add_argument('-el', '--eulerLagrangian', action='store_true', help='Converting Eulerian and Lagrangian data')
 parser.add_argument('-e', '--euler', action='store_true', help='Converting only Eulerian data')
 parser.add_argument('-l', '--lagrangian', action='store_true', help='Converting only Lagrangian data')
+parser.add_argument('-rotn','--rotn_paraview',action='store_true',
+                   help='Create additional Rotn tensor for visualizing rotation in paraview')
 parser.add_argument('-as', '--add_scalar', type=str,required=False, help='')
 
 args = parser.parse_args()
@@ -642,11 +663,16 @@ if args.xdmf:
 
         #The information about number of particles and attributes is taken from the 1st Particle.h5 file
         #mobile particles
+        if args.rotn_paraview:
+            print('Writing R_otn_paraview')
+            write_Rotn_paraview(files_l)
+        
         if if_exists(files_l[0],'mobile'):
             att_list = attributes(files_l[0],'mobile')
             Np = numper_of_particles(files_l[0],'mobile')
             time = set_time(files_l)
             write_Reader_Particle_xmf(output_path, len(files_l), time, 'mobile', 'Mobile', Np, att_list)
+
 
         #fixed particles
         if if_exists(files_l[0],'fixed'):
@@ -654,7 +680,7 @@ if args.xdmf:
             Np = numper_of_particles(files_l[0],'fixed')
             time = set_time(files_l)
             write_Reader_Particle_xmf(output_path, len(files_l), time, 'fixed', 'Fixed', Np, att_list)
-    
+ 
     except:
         print("Lagrangian files are not found")
     
