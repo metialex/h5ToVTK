@@ -5,6 +5,7 @@ import os
 import argparse
 import struct
 import sys
+from tqdm import tqdm
 
 def eulerH5toVTK(output_path, files):
         for input_file in files:
@@ -602,7 +603,7 @@ def set_Nx_Ny_Nz(file):
     return NX,NY,NZ
 
 def write_Rotn_paraview(files_l):
-    for file_name in files_l:
+    for file_name in tqdm(files_l):
         with h5py.File(file_name,"a") as f:
             #delete variable if exists
             if "mobile/Rotn_paraview" in f:
