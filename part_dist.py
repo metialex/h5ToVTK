@@ -4,21 +4,19 @@ import pickle
 from tqdm import tqdm
 import argparse
 
-
-
-
 parser = argparse.ArgumentParser()
-parser.add_argument('-Lx', '--Lx', type=float, required=True, help='Lx')
-parser.add_argument('-Ly', '--Ly', type=float, required=True, help='Ly')
-parser.add_argument('-Lz', '--Lz', type=float, required=True, help='Lz')
-parser.add_argument('-phi', '--phi', type=float, required=True, help='phi')
-parser.add_argument('-rad', '--rad', type=float, required=True, help='rad')
-parser.add_argument('-delta', '--delta', type=float, required=True, help='delta')
+parser.add_argument('-lx', '--lx', type=float, required=True, help='Length of the domain')
+parser.add_argument('-ly', '--ly', type=float, required=True, help='Width of the domain')
+parser.add_argument('-lz', '--lz', type=float, required=True, help='Hight of the domain')
+parser.add_argument('-phi', '--phi', type=float, required=True, help='Volume fraction of particles')
+parser.add_argument('-rad', '--rad', type=float, required=True, help='Particles radius')
+parser.add_argument('-delta', '--delta', type=float, required=True, help='Minimum distance between particles')
 parser.add_argument('-per_bc', '--periodic_bc', type=str, required=True,
-                    help='Periodic BC over axis, set in "1:1:1" format')
-parser.add_argument('-xmin', '--xmin', type=float, required=False, help='xmin')
-parser.add_argument('-ymin', '--ymin', type=float, required=False, help='ymin')
-parser.add_argument('-zmin', '--zmin', type=float, required=False, help='zmin')
+                    help='Periodic BC over axis, set in "0:1:1" format, where 1 correspond to periodic BC and\
+                    0 to wall BC')
+parser.add_argument('-xmin', '--xmin', type=float, required=False, help='Start X coordinate')
+parser.add_argument('-ymin', '--ymin', type=float, required=False, help='Start Y coordinate')
+parser.add_argument('-zmin', '--zmin', type=float, required=False, help='Start Z coordinate')
 args = parser.parse_args()
 
 
