@@ -97,8 +97,10 @@ def extract_domain_from_data(particle_data):
 parser = argparse.ArgumentParser()
 parser.add_argument('-d', '--cutoff_distance',
                     type=float, required=False,
-                    help='Particles will be considered as part of the same floc, if the distance between their centers is smaller than Ri+Rj+coutoff_distance')
+                    help='Particles will be considered as part of the same floc, if the distance between their centers is smaller than Ri+Rj+coutoff_distance. Value by default 0.05')
 parser.add_argument('-i','--particle_index_range', type=str,required=False,help='Certain indexes of Particles_.h5 files to be analysed. The format if input is following -i 0:10')
+parser.add_argument('-lr','--particle_layer_coloring', type=str,required=False,help='Colors particles according to position. The format of input is following -i i:j:k. i - indicates starting particle file, j - number of layers, k - axis ("x","y", or "z")')
+
 args = parser.parse_args()
 
 particle_data = glob.glob("Particle*")    
@@ -122,7 +124,34 @@ if args.particle_index_range:
         particle_data.append(f"Particle_{i}.h5")
 else:
     particle_data = glob.glob("Particle*")
-print(cutoff_dist)
 
-for file in tqdm(particle_data):
-    write_floc_data(file,Lx,Ly,Lz,cutoff_dist)
+
+def write_layers_data(particle_data,Lx,Ly,Lz,p_start_idx,n_layers,axis):
+    with h5py.File(f"Particle_{p_start_idx}.h5","r+") as f:
+        mp = pd.DataFrame(f["mobile/X"][:], columns=["x", "y", "z"])
+        ds = pd.DataFrame({ 'x': [Lx], 'y': [Ly],'z': [Lz]})
+        mp['layer'] = (mp[axis] * (n_layers/ds[axis][0])).astype(int)
+
+    #Write data into all h5 particle file
+    for file in tqdm(particle_data):
+        with h5py.File(file,'a') as f:
+            #Writing floc size
+            if "mobile/layer" in f:
+                floc_arr = mp['layer'].values.reshape((len(mp),1))
+                f["mobile/layer"][:] = floc_arr
+            else:
+                floc_arr = mp['layer'].values.reshape((len(mp),1))
+                f.create_dataset("mobile/layer", data=floc_arr)
+
+
+if args.particle_layer_coloring:
+    p_start_idx = int(args.particle_layer_coloring.split(":")[0])
+    n_layers = int(args.particle_layer_coloring.split(":")[1])
+    axis = str(args.particle_layer_coloring.split(":")[2])
+    write_layers_data(particle_data,Lx,Ly,Lz,p_start_idx,n_layers,axis)
+    
+
+else:
+    for file in tqdm(particle_data):
+        write_floc_data(file,Lx,Ly,Lz,cutoff_dist)
+
